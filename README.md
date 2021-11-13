@@ -41,3 +41,11 @@ It can also be started as a systemd service. An example service file is provided
 ```bash
 sudo ./install.py -c [CONFIG_FILE]
 ```
+
+# Notes
+
+For centos 8, 3DES crypto is disabled by default. You may enable it via
+
+```bash
+sudo update-crypto-policies --set LEGACY
+```
