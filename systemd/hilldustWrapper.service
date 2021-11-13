@@ -1,0 +1,11 @@
+[Unit]
+Description=HilldustWrapper
+Wants=network-online.target
+After=network.target network-online.target
+
+[Service]
+Type=simple
+ExecStart=PYTHON_PATH SCRIPT_PATH -c CONFIG_PATH
+
+[Install]
+WantedBy=multi-user.target

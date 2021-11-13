@@ -11,6 +11,8 @@ import subprocess
 import re
 import os
 import atexit
+import time
+import signal
 
 class HilldustDaemon():
     def __init__(self, config):
@@ -19,6 +21,8 @@ class HilldustDaemon():
         self.uuid = ''
         self.name = ''
         atexit.register(self.__del__)
+        signal.signal(signal.SIGINT, self.__del__)
+        signal.signal(signal.SIGTERM, self.__del__)
     def create_connection(self):
         # Connect to VPN (reproduced from hilldust.py)
         self.conn = hilldust.impl_scapy.Client()
@@ -54,7 +58,7 @@ class HilldustDaemon():
         subprocess.check_call('nmcli con up '+self.uuid, shell=True)
         print('Network configured.')
 
-        # Threading
+        # Threading (modified from hilldust.py and platform_linux.py)
         def write(datagram:bytes):
             os.write(tun.fileno(), datagram)
         def read():
@@ -71,8 +75,9 @@ class HilldustDaemon():
         Thread(target=inbound_handle, daemon=True).start()
         Thread(target=outbound_handle, daemon=True).start()
         try:
-            input('Enter to exit.')
-        except KeyboardInterrupt:
+            while True:
+                time.sleep(1)
+        except:
             pass
     def __del__(self):
         print('Logout.')
