@@ -13,6 +13,7 @@ import os
 import atexit
 import time
 import signal
+import ipaddress
 
 class HilldustDaemon():
     def __init__(self, config):
@@ -53,6 +54,13 @@ class HilldustDaemon():
         for dns in self.conn.dns_ipv4:
             subprocess.check_call('nmcli con mod '+self.uuid+' +ipv4.dns '+str(dns), shell=True)
         subprocess.check_call('nmcli con mod '+self.uuid+' +ipv4.dns-priority 100', shell=True)
+        for i in range(0, len(self.conn.route_ipv4), 12):
+            ipv4Addr = str(ipaddress.IPv4Address(self.conn.route_ipv4[i:i+4]))
+            ipv4Mask = str(ipaddress.IPv4Address(self.conn.route_ipv4[i+4:i+8]))
+            ipv4Gate = str(self.conn.gateway_ipv4)
+            ipv4Route = str(ipaddress.IPv4Network(ipv4Addr+'/'+ipv4Mask))+' '+ipv4Gate
+            subprocess.check_call('nmcli con mod '+self.uuid+' +ipv4.routes "'+ipv4Route+'"', shell=True)
+        subprocess.check_call('nmcli con mod '+self.uuid+' +ipv4.routes "'+str(self.conn.ip_ipv4.network)+' '+str(self.conn.gateway_ipv4)+'"', shell=True)
         for route in self.config['routes']:
             subprocess.check_call('nmcli con mod '+self.uuid+' +ipv4.routes "'+str(route)+' '+str(self.conn.ip_ipv4.ip)+'"', shell=True)
         subprocess.check_call('nmcli con up '+self.uuid, shell=True)
