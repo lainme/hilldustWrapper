@@ -30,6 +30,8 @@ Parameters are read from a json configuration file. Here is an example,
 }
 ```
 
+The routes field is optional, other fields are mandatory.
+
 The VPN can be started from the command line via
 
 ```bash
@@ -43,6 +45,9 @@ sudo ./install.py -c [CONFIG_FILE]
 ```
 
 # Notes
+
+For centos 7, the distro version of pip/scapy/cryptography are outdated. You
+may need to upgrade them via pip.
 
 For centos 8, 3DES crypto is disabled by default. You may enable it via
 
