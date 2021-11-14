@@ -2,9 +2,9 @@
 And a wrapper to the original Hilldust (https://github.com/LionNatsu/hilldust) to provide the following functionalities:
 
  - Read configurations from an user-specified file
- - Allow custom routes (the original may not work for some VPN configuration)
+ - Process the route table returned from VPN server, and allow custom routes
  - Add a systemd service to startup the VPN at system startup
- - Use nmcli instead of iproute2 for network configuration (to avoid conflict with NetworkManager)
+ - Use nmcli instead of iproute2 for network configuration
 
 # Requirements
 
@@ -30,7 +30,7 @@ Parameters are read from a json configuration file. Here is an example,
 }
 ```
 
-The routes field is optional, other fields are mandatory.
+Usually the routes field is not needed, use it only when you have special routes not in the returned route table.
 
 The VPN can be started from the command line via
 
@@ -46,10 +46,23 @@ sudo ./install.py -c [CONFIG_FILE]
 
 # Notes
 
-For centos 7, the distro version of pip/scapy/cryptography are outdated. You
+For Centos 7, the distro version of pip/scapy/cryptography are outdated. You
 may need to upgrade them via pip.
 
-For centos 8, 3DES crypto is disabled by default. You may enable it via
+```bash
+sudo python3 -m pip install --upgrade pip
+sudo python3 -m pip install --upgrade scapy
+sudo python3 -m pip install --upgrade cryptography
+```
+
+For Centos 8, the distro version is sufficient, you may install them via
+
+```bash
+sudo dnf install python3-scapy
+sudo dnf install python3-cryptography
+```
+
+The 3DES crypto is disabled by default in Centos 8, you may enable it via
 
 ```bash
 sudo update-crypto-policies --set LEGACY
