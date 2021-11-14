@@ -61,8 +61,11 @@ class HilldustDaemon():
             ipv4Route = str(ipaddress.IPv4Network(ipv4Addr+'/'+ipv4Mask))+' '+ipv4Gate
             subprocess.check_call('nmcli con mod '+self.uuid+' +ipv4.routes "'+ipv4Route+'"', shell=True)
         subprocess.check_call('nmcli con mod '+self.uuid+' +ipv4.routes "'+str(self.conn.ip_ipv4.network)+' '+str(self.conn.gateway_ipv4)+'"', shell=True)
-        for route in self.config['routes']:
-            subprocess.check_call('nmcli con mod '+self.uuid+' +ipv4.routes "'+str(route)+' '+str(self.conn.ip_ipv4.ip)+'"', shell=True)
+        try:
+            for route in self.config['routes']:
+                subprocess.check_call('nmcli con mod '+self.uuid+' +ipv4.routes "'+str(route)+' '+str(self.conn.gateway_ipv4)+'"', shell=True)
+        except:
+            pass
         subprocess.check_call('nmcli con up '+self.uuid, shell=True)
         print('Network configured.')
 
