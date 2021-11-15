@@ -14,6 +14,35 @@ import atexit
 import time
 import signal
 import ipaddress
+from threading import Thread
+
+class ClientSendThread(Thread):
+    def __init__(self, con, tun):
+        Thread.__init__(self)
+        self.daemon = True
+        self.con = con
+        self.tun = tun
+    def __read(self):
+        return os.read(self.tun.fileno(), 8192)
+    def run(self):
+        while True:
+            raw = self.__read()
+            self.con.send(raw)
+            print("send data:", raw)
+
+class ClientRecvThread(Thread):
+    def __init__(self, con, tun):
+        Thread.__init__(self)
+        self.daemon = True
+        self.con = con
+        self.tun = tun
+    def __write(self, datagram:bytes):
+        os.write(self.tun.fileno(), datagram)
+    def run(self):
+        while True:
+            raw = self.con.recv()
+            self.__write(raw)
+            print("recv data:", raw)
 
 class HilldustDaemon():
     def __init__(self, config):
@@ -70,26 +99,12 @@ class HilldustDaemon():
         print('Network configured.')
 
         # Threading (modified from hilldust.py and platform_linux.py)
-        def write(datagram:bytes):
-            os.write(tun.fileno(), datagram)
-        def read():
-            return os.read(tun.fileno(), 8192)
-        def inbound_handle():
-            while True:
-                raw = self.conn.recv()
-                write(raw)
-        def outbound_handle():
-            while True:
-                raw = read()
-                self.conn.send(raw)
-        from threading import Thread
-        Thread(target=inbound_handle, daemon=True).start()
-        Thread(target=outbound_handle, daemon=True).start()
-        try:
-            while True:
-                time.sleep(1)
-        except:
-            pass
+        clientSendThread = ClientSendThread(self.conn, tun)
+        clientRecvThread = ClientRecvThread(self.conn, tun)
+        clientSendThread.start()
+        clientRecvThread.start()
+        clientSendThread.join()
+        clientRecvThread.join()
     def __del__(self):
         print('Logout.')
         self.conn.logout()
