@@ -28,7 +28,6 @@ class ClientSendThread(Thread):
         while True:
             raw = self.__read()
             self.con.send(raw)
-            print("send data:", raw)
 
 class ClientRecvThread(Thread):
     def __init__(self, con, tun):
@@ -42,7 +41,6 @@ class ClientRecvThread(Thread):
         while True:
             raw = self.con.recv()
             self.__write(raw)
-            print("recv data:", raw)
 
 class HilldustDaemon():
     def __init__(self, config):
