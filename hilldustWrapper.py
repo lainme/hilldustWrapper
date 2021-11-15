@@ -10,11 +10,11 @@ import struct
 import subprocess
 import re
 import os
-import atexit
 import time
 import signal
 import ipaddress
 from threading import Thread
+import sys
 
 class ClientSendThread(Thread):
     def __init__(self, con, tun):
@@ -48,9 +48,9 @@ class HilldustDaemon():
         self.conn = ''
         self.uuid = ''
         self.name = ''
-        atexit.register(self.__del__)
-        signal.signal(signal.SIGINT, self.__del__)
-        signal.signal(signal.SIGTERM, self.__del__)
+        self.kill = False
+        signal.signal(signal.SIGINT, self.__close_handle)
+        signal.signal(signal.SIGTERM, self.__close_handle)
     def create_connection(self):
         # Connect to VPN (reproduced from hilldust.py)
         self.conn = hilldust.impl_scapy.Client()
@@ -103,12 +103,17 @@ class HilldustDaemon():
         clientRecvThread.start()
         clientSendThread.join()
         clientRecvThread.join()
+    def __close_handle(self, signum, frame):
+        self.__del__()
     def __del__(self):
-        print('Logout.')
-        self.conn.logout()
-        subprocess.check_call('nmcli con down '+self.uuid, shell=True)
-        subprocess.check_call('nmcli con del '+self.uuid, shell=True)
-        print('Network restored.')
+        if not self.kill:
+            print('Logout.')
+            self.conn.logout()
+            subprocess.check_call('nmcli con down '+self.uuid, shell=True)
+            subprocess.check_call('nmcli con del '+self.uuid, shell=True)
+            print('Network restored.')
+            self.kill = True
+        sys.exit()
 
 def main():
     # Parse arguments
