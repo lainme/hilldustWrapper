@@ -101,8 +101,11 @@ class HilldustDaemon():
         clientRecvThread = ClientRecvThread(self.conn, tun)
         clientSendThread.start()
         clientRecvThread.start()
-        clientSendThread.join()
-        clientRecvThread.join()
+
+        # Keep busy
+        while True:
+            time.sleep(120)
+            subprocess.call('nslookup '+str(self.conn.gateway_ipv4)+' '+str(self.conn.dns_ipv4[0]), shell=True, stdout=subprocess.DEVNULL)
     def __close_handle(self, signum, frame):
         self.__del__()
     def __del__(self):
